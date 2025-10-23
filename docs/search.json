@@ -4,7 +4,7 @@
     "href": "index.html#section",
     "title": "Manitoba Arts Council Survey Results",
     "section": "",
-    "text": "Updated October 23, 2025\nN = 127 surveys were completed between October 21 and 29, 2025."
+    "text": "Updated October 23, 2025\nN = 127"
   },
   {
     "objectID": "index.html#survey-respondents-by-role",
@@ -40,5 +40,19 @@
     "title": "Manitoba Arts Council Survey Results",
     "section": "Feedback on MAC’s Process and Services",
     "text": "Feedback on MAC’s Process and Services"
+  },
+  {
+    "objectID": "index.html#macs-connection-to-arts-cultural-communitys-needs-and-realities",
+    "href": "index.html#macs-connection-to-arts-cultural-communitys-needs-and-realities",
+    "title": "Manitoba Arts Council Survey Results",
+    "section": "MAC’s Connection to Arts & Cultural Community’s Needs and Realities",
+    "text": "MAC’s Connection to Arts & Cultural Community’s Needs and Realities"
+  },
+  {
+    "objectID": "index.html#rank-distribution-of-areas-needing-enhacement",
+    "href": "index.html#rank-distribution-of-areas-needing-enhacement",
+    "title": "Manitoba Arts Council Survey Results",
+    "section": "Rank Distribution of Areas Needing Enhacement",
+    "text": "Rank Distribution of Areas Needing Enhacement\nEach row in the grid represents an item on the the list. Each column represents a rank starting from the lowest rank (9) to the highest rank (1) on the right. The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the proportion of respondents assigning that rank."
   }
 ]

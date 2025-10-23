@@ -78,7 +78,7 @@ num_funded <- data |>
 ##
 
 Updated `r format(Sys.Date(), "%B %d, %Y")`  
-N = `r num_responses_all` surveys were completed between October 21 and 29, 2025.
+N = `r num_responses_all`
 
 ## Survey Respondents by Role
 
@@ -284,7 +284,7 @@ ratings_data |>
     aes(x = question,
         y = y_mid,
         label = pct_label),
-    size = 3.5,
+    size = 3.25,
     colour = "floralwhite",
     fontface = "bold"
   ) +
@@ -309,5 +309,65 @@ ratings_data |>
                                size = 10),
     legend.position = "bottom"
   )
+```
+
+## MAC's Connection to Arts & Cultural Community's Needs and Realities
+
+```{r}
+data |> 
+  select(connection_to_arts_community) |> 
+  filter(connection_to_arts_community != "Missing") |> 
+  ggplot() +
+  geom_bar(aes(x = connection_to_arts_community,
+               y = after_stat(prop),
+               group = 1),
+           fill = green) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = "",
+       y = "") +
+  plot_theme() +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank())
+```
+
+## Rank Distribution of Areas Needing Enhacement
+
+Each row in the grid represents an item on the the list. Each column represents a rank starting from the lowest rank (9) to the highest rank (1) on the right. The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the proportion of respondents assigning that rank.
+
+```{r}
+ranking_data <- data |> 
+  select(id, starts_with("rank")) |> 
+  pivot_longer(
+    cols = -id,
+    names_to = "item",
+    values_to = "rank"
+  ) |> 
+  filter(rank != "Missing") |> 
+  mutate(
+    item = str_remove(item, "rank_"),
+    rank = as.numeric(rank),
+    n_total = n_distinct(id)
+  ) |> 
+  mutate(item = str_replace(item, "_", " "),
+         item = str_to_title(item)) |> 
+  group_by(item, rank) |>
+  summarise(pct = n() / first(n_total) * 100, .groups = "drop")
+
+ranking_data |> 
+  ggplot(aes(x = factor(rank),
+             y = item,
+             fill = pct)) +
+  geom_tile(color = "white") +
+  scale_x_discrete(limits = as.character(9:1)) +
+  scale_fill_gradient(low = "white", high = mustard) +
+  labs(x = "Rank (9 = low, 1 = high)",
+       y = "",
+       fill = "%") +
+  plot_theme() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+  
 ```
 
