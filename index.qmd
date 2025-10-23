@@ -1,0 +1,212 @@
+---
+format:
+  html:
+    theme: [default, styles.scss]
+  pptx: default
+execute:
+  echo: false
+  warning: false
+  message: false
+  fig-align: center
+---
+
+```{r}
+library(tidyverse)
+library(flextable)
+library(janitor)
+library(scales)
+
+source("scripts/import-data.R")
+
+data <- read_rds("data/survey_data_clean.rds")
+
+data <- data |>
+  mutate(across(
+    where(is.factor),
+    ~ fct_na_value_to_level(.x, level = "Missing")
+  )) |> 
+  mutate(funded_status = case_when(
+    funded_past_3_yrs == "Yes" & applied_not_funded == "Yes" ~ "Funded",
+    funded_past_3_yrs == "Yes" & applied_not_funded == "No" ~ "Funded",
+    funded_past_3_yrs == "No" & applied_not_funded == "Yes" ~ "Applied, not funded",
+    funded_past_3_yrs == "No" & applied_not_funded == "No" ~ "Did not apply, not funded",
+    TRUE ~ "Missing")) |> 
+  mutate(funded_status = factor(funded_status,
+                                levels = c(
+                                  "Funded",
+                                  "Applied, not funded",
+                                  "Did not apply, not funded",
+                                  "Missing"
+                                ))
+  )
+
+
+# set flextable themes
+set_flextable_defaults(
+  theme_fun = "theme_alafoli",
+  font.size = 9
+)
+
+# set ggplot themes
+plot_theme <- function(){
+  theme_minimal(base_size = 14)
+}
+
+# set colours
+blue <- "#7fc5c5"
+green <- "#b7b23a"
+mustard <- "#ac8732"
+yellow <- "#f2b643"
+orange <-  "#e9913d"
+red <- "#dd4f34"
+magenta <- "#cd2e6b"
+brick <- "#9f4125"
+
+
+# denominators
+num_responses_all <- data |> 
+  count() |> 
+  pull()
+
+num_funded <- data |> 
+  filter(funded_status == "Funded") |> 
+  count() |> 
+  pull()
+
+```
+
+##
+
+Updated `r format(Sys.Date(), "%B %d, %Y")`  
+N = `r num_responses_all` surveys were completed between October 21 and 29, 2025.
+
+## Survey Respondents by Role
+
+```{r}
+
+data |> 
+  mutate(org_role = str_remove(org_role, " \\(.*\\)"),
+         org_role = fct_infreq(org_role),
+         org_role = fct_relevel(org_role, "Missing", after = Inf),
+         org_role = fct_rev(org_role)) |> 
+ggplot(aes(x = org_role,
+           y = after_stat(prop))) +
+  geom_bar(aes(group = 1),
+           fill = green) +
+  geom_text(
+    aes(label = 
+          after_stat(count), y = after_stat(prop),
+        group = 1),
+        stat = "count",
+    hjust = -0.25,
+    size = 3
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format()) +
+  labs(y = "",
+       x = "",
+       title = "Bar lengths are proportional. The data label indicates frequency.") +
+  plot_theme() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(linewidth = 0.5),
+    plot.title.position = "plot"
+  )
+
+
+
+
+```
+
+## Survey Respondents by Funding Status
+
+```{r}
+
+data |> 
+  mutate(funded_status = fct_infreq(funded_status),
+         funded_status = fct_relevel(funded_status, "Missing", after = Inf)) |> 
+ggplot(aes(x = funded_status,
+           y = after_stat(prop))) +
+  geom_bar(aes(group = 1),
+           fill = green) +
+  geom_text(
+    aes(label = 
+          paste0("n = ", after_stat(count)), y = after_stat(prop),
+        group = 1),
+        stat = "count",
+    vjust = -0.5,
+    size = 3
+  ) +
+  scale_y_continuous(labels = percent_format()) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 15)) +
+  labs(
+    x = "",
+    y = "",
+  ) +
+  plot_theme() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+
+```
+
+## Primary Area of Artistic or Organizational Focus
+```{r}
+
+data |> 
+  select(primary_focus) |> 
+  mutate(primary_focus = fct_infreq(primary_focus),
+         primary_focus = fct_relevel(primary_focus, "Missing", after = Inf)) |> 
+  ggplot(aes(
+    x = primary_focus,
+    y = after_stat(prop),
+  )) +
+  geom_bar(aes(group = 1),
+           fill = green) +
+  geom_text(aes(label = 
+                  paste0("n = ", after_stat(count)),
+                y = after_stat(prop),
+                group = 1),
+            stat = "count",
+            vjust = -.5,
+            size = 3) +
+  scale_y_continuous(labels = percent_format()) +
+  scale_x_discrete(labels = function(x) str_wrap(x, 10)) +
+  labs(y = "",
+       x = "") +
+  plot_theme() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+## Confidence in MAC's Ability to Fulfill Purpose
+
+```{r}
+data |> 
+  filter(confident_in_mac_ability != "Don’t know enough to answer",
+         confident_in_mac_ability != "Missing") |> 
+  ggplot(aes(x = confident_in_mac_ability,
+             y = after_stat(prop))) +
+  geom_bar(aes(group = 1),
+           fill = green) +
+  geom_text(aes(label = 
+                  paste0("n = ", after_stat(count)),
+                y = after_stat(prop),
+                group = 1),
+            stat = "count",
+            vjust = -.5,
+            size = 4) +
+  scale_y_continuous(labels = percent_format(),
+                     limits = c(0, .75)) +
+  labs(x = "",
+       y = "") +
+  plot_theme() +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank())
+```
+
+

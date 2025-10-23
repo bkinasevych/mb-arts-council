@@ -1,0 +1,99 @@
+/*-- scss:defaults --*/
+
+@font-face {
+  font-family: "Acherus Grotesque";
+  src:url('assets/fonts/acherus-grotesque-regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+$font-family-sans-serif: 'Acherus Grotesque', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$headings-font-family: 'Acherus Grotesque', sans-serif;
+
+$font-size-root: 18px;
+$h2-font-size: 1.5rem;
+$h3-font-size: 1.25rem;
+$navbar-bg: #7fc5c5;
+$link-color: darken($navbar-bg, 10%);
+$link-hover-color: darken($navbar-bg, 20%);
+
+/*-- scss:rules --*/
+
+/* Minimal, left-aligned navbar */
+.navbar {
+  justify-content: flex-start !important;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  background-color: #7fc5c5 !important;
+  border: none;
+  box-shadow: none;
+}
+
+/* Navbar title styling */
+.navbar a,
+.navbar-brand {
+  font-family: 'Acherus Grotesque', sans-serif !important;
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: #ffffff !important;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+
+.navbar a:hover,
+.navbar a:focus {
+  color: #7fc5c5 !important;
+  text-decoration: none;
+}
+
+/* Hide search icon and mobile menu toggler (if still visible) */
+.navbar-search, .navbar-toggler {
+  display: none !important;
+}
+
+/* ---------- CONFIG: reuseable sizes ---------- */
+:root {
+  --nav-offset: 70px;     /* your fixed navbar padding-top; adjust if needed */
+  --logo-height: 80px;    /* matches .site-logo height */
+  --logo-gap: 12px;       /* spacing between logo and TOC */
+}
+
+/* Position the logo above the table of contents on the right */
+.site-logo-container {
+  position: absolute;
+  top: 80px;          // adjust if you have a fixed navbar
+  right: 2rem;        // align with the right margin of your content area
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 10;        // make sure it appears above content
+}
+
+.site-logo {
+  height: 80px;       // adjust as desired
+  width: auto;
+  border: none;
+}
+
+/* ---------- PUSH THE TOC DOWN ---------- */
+/* Quarto's TOC nav can have different class combos; cover the common ones */
+#TOC,
+nav#TOC,
+nav.toc,
+.toc {
+  margin-top: calc(var(--logo-height) + var(--logo-gap));
+}
+
+/* ---------- RESPONSIVE SAFETY ---------- */
+/* On narrow screens the TOC often becomes inline; hide/move the logo and reset spacing */
+@media (max-width: 991.98px) { /* ~Bootstrap lg breakpoint */
+  .site-logo-container {
+    display: none; /* or position: static; if you want it in-flow above content */
+  }
+  #TOC,
+  nav#TOC,
+  nav.toc,
+  .toc {
+    margin-top: 0;
+  }
+}
