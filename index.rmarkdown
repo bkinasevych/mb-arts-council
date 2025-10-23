@@ -75,12 +75,16 @@ num_funded <- data |>
 
 ```
 
+
+
 ##
 
 Updated `r format(Sys.Date(), "%B %d, %Y")`  
 N = `r num_responses_all` surveys were completed between October 21 and 29, 2025.
 
 ## Survey Respondents by Role
+
+
 
 ```{r}
 
@@ -119,7 +123,11 @@ ggplot(aes(x = org_role,
 
 ```
 
+
+
 ## Survey Respondents by Funding Status
+
+
 
 ```{r}
 
@@ -152,7 +160,11 @@ ggplot(aes(x = funded_status,
 
 ```
 
+
+
 ## Primary Area of Artistic or Organizational Focus
+
+
 ```{r}
 
 data |> 
@@ -183,7 +195,11 @@ data |>
   )
 ```
 
+
+
 ## Confidence in MAC's Ability to Fulfill Its Purpose
+
+
 
 ```{r}
 data |> 
@@ -209,7 +225,11 @@ data |>
         panel.grid.major.x = element_blank())
 ```
 
+
+
 ## Feedback on MAC's Process and Services
+
+
 
 ```{r}
 ratings_data <- data |> 

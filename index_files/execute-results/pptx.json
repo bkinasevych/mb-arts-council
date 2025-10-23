@@ -1,0 +1,17 @@
+{
+  "hash": "8737f7646f6098588b0db054c825f879",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\nformat:\n  html:\n    theme: [default, styles.scss]\n  pptx: default\nexecute:\n  echo: false\n  warning: false\n  message: false\n  fig-align: center\n---\n\n::: {.cell}\n\n:::\n\n\n\n##\n\nUpdated October 23, 2025  \nN = 126 surveys were completed between October 21 and 29, 2025.\n\n## Survey Respondents by Role\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-pptx/unnamed-chunk-2-1.png)\n:::\n:::\n\n\n\n## Survey Respondents by Funding Status\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-pptx/unnamed-chunk-3-1.png)\n:::\n:::\n\n\n\n## Primary Area of Artistic or Organizational Focus\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-pptx/unnamed-chunk-4-1.png)\n:::\n:::\n\n\n\n## Confidence in MAC's Ability to Fulfill Purpose\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-pptx/unnamed-chunk-5-1.png)\n:::\n:::\n",
+    "supporting": [
+      "index_files\\figure-pptx"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": null,
+    "postProcess": false
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "hash": "2368f3fbf537bf11b4518ba7eb14d3ed",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\nformat:\n  html:\n    theme: [default, styles.scss]\n  pptx: default\nexecute:\n  echo: false\n  warning: false\n  message: false\n  fig-align: center\n---\n\n::: {.cell}\n\n:::\n\n\n##\n\nUpdated October 23, 2025  \nN = 127 surveys were completed between October 21 and 29, 2025.\n\n## Survey Respondents by Role\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-html/unnamed-chunk-2-1.png){width=672}\n:::\n:::\n\n\n## Survey Respondents by Funding Status\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-html/unnamed-chunk-3-1.png){width=672}\n:::\n:::\n\n\n## Primary Area of Artistic or Organizational Focus\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-html/unnamed-chunk-4-1.png){width=672}\n:::\n:::\n\n\n## Confidence in MAC's Ability to Fulfill Its Purpose\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-html/unnamed-chunk-5-1.png){width=672}\n:::\n:::\n\n\n## Feedback on MAC's Process and Services\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](index_files/figure-html/unnamed-chunk-6-1.png){width=672}\n:::\n:::\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
