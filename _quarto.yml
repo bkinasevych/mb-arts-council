@@ -1,21 +1,6 @@
 project:
-  type: website
+  title: "MAC Survey Results"
   output-dir: docs
-
-website:
-  title: "Manitoba Arts Council Survey Results"
-  navbar:
-    search: false
-    right: []
-
-format:
-  html:
-    theme:
-     - default
-     - styles.scss
-    include-before-body: logo.html
-    toc: true
-  pptx: default
 
 
 

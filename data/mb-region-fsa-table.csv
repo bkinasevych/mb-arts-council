@@ -1,0 +1,68 @@
+﻿region,fsa,dup
+Norman,R0B,FALSE
+Norman,R8A,FALSE
+Norman,R9A,FALSE
+Norman,R8N,FALSE
+Parklands,R0L,FALSE
+Parklands,R7N,FALSE
+Interlake,R0C,FALSE
+Interlake,R0E,FALSE
+Interlake,R1A,FALSE
+Interlake,R1B,FALSE
+Westman,R0J,FALSE
+Westman,R0M,FALSE
+Westman,R7A,FALSE
+Westman,R7B,FALSE
+Westman,R0K,FALSE
+Central Plains,R0G,TRUE
+Central Plains,R1N,FALSE
+Central Plains,R0H,FALSE
+Pembina Valley,R0G,TRUE
+Pembina Valley,R6W,FALSE
+Pembina Valley,R6M,FALSE
+Eastman,R0E,FALSE
+Eastman,R5G,FALSE
+Capital Region,R2C,FALSE
+Capital Region,R2E,FALSE
+Capital Region,R2G,FALSE
+Capital Region,R2H,FALSE
+Capital Region,R2K,FALSE
+Capital Region,R2L,FALSE
+Capital Region,R2M,FALSE
+Capital Region,R2N,FALSE
+Capital Region,R2P,FALSE
+Capital Region,R2R,FALSE
+Capital Region,R2S,FALSE
+Capital Region,R2T,FALSE
+Capital Region,R2V,FALSE
+Capital Region,R2W,FALSE
+Capital Region,R2X,FALSE
+Capital Region,R2Y,FALSE
+Capital Region,R2Z,FALSE
+Capital Region,R3A,FALSE
+Capital Region,R3B,FALSE
+Capital Region,R3C,FALSE
+Capital Region,R3E,FALSE
+Capital Region,R3G,FALSE
+Capital Region,R3H,FALSE
+Capital Region,R3J,FALSE
+Capital Region,R3K,FALSE
+Capital Region,R3L,FALSE
+Capital Region,R3M,FALSE
+Capital Region,R3N,FALSE
+Capital Region,R3P,FALSE
+Capital Region,R3R,FALSE
+Capital Region,R3S,FALSE
+Capital Region,R3T,FALSE
+Capital Region,R3V,FALSE
+Capital Region,R3W,FALSE
+Capital Region,R3X,FALSE
+Capital Region,R3Y,FALSE
+Capital Region,R3Z,FALSE
+Capital Region,R4A,FALSE
+Capital Region,R4B,FALSE
+Capital Region,R4G,FALSE
+Eastman,R0A,FALSE
+Capital Region,R2J,FALSE
+Eastman,R5H,FALSE
+Eastman,R5J,FALSE

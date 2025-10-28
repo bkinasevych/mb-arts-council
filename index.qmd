@@ -1,22 +1,46 @@
 ---
+title: "Strategic Planning Survey Results"
 format:
-  html:
-    theme: [default, styles.scss]
-  pptx: default
-execute:
-  echo: false
-  warning: false
-  message: false
-  fig-align: center
+  dashboard:
+    theme: styles.scss
+logo: assets/MAC_Logo-RGB_Colour-Stack.jpg
 ---
 
 ```{r}
+#| label: setup
+#| include: false
+
 library(tidyverse)
 library(flextable)
 library(janitor)
 library(scales)
+library(sf)
+library(rnaturalearth)
+library(ggtext)
 
-source("scripts/import-data.R")
+
+# set ggplot themes
+plot_theme <- function(){
+  theme_minimal(base_size = 14)
+}
+
+# set colours
+blue <- "#7fc5c5"
+green <- "#b7b23a"
+mustard <- "#ac8732"
+yellow <- "#f2b643"
+orange <-  "#e9913d"
+red <- "#dd4f34"
+magenta <- "#cd2e6b"
+brick <- "#9f4125"
+
+```
+
+```{r}
+#| label: load-data
+#| include: false
+
+#source("scripts/import-data.R")
 
 data <- read_rds("data/survey_data_clean.rds")
 
@@ -41,48 +65,155 @@ data <- data |>
   )
 
 
-# set flextable themes
-set_flextable_defaults(
-  theme_fun = "theme_alafoli",
-  font.size = 9
-)
-
-# set ggplot themes
-plot_theme <- function(){
-  theme_minimal(base_size = 14)
-}
-
-# set colours
-blue <- "#7fc5c5"
-green <- "#b7b23a"
-mustard <- "#ac8732"
-yellow <- "#f2b643"
-orange <-  "#e9913d"
-red <- "#dd4f34"
-magenta <- "#cd2e6b"
-brick <- "#9f4125"
 
 
-# denominators
+```
+
+# Profile
+
+## Row {height=20%}
+
+```{r}
+#| content: valuebox
+#| title: "Updated:"
+
+
+list(
+  color = blue,
+  value = format(Sys.Date(), "%b %d, %Y")
+  )
+
+```
+
+
+```{r}
+#| content: valuebox
+#| title: "Respondents:"
+
 num_responses_all <- data |> 
   count() |> 
   pull()
 
 num_funded <- data |> 
-  filter(funded_status == "Funded") |> 
+  filter(funded_past_3_yrs == "Yes") |> 
   count() |> 
   pull()
 
+pct_funded <- num_funded / num_responses_all
+
+list(
+  color = blue,
+  value = num_responses_all
+)
+
+
 ```
 
-##
-
-Updated `r format(Sys.Date(), "%B %d, %Y")`  
-N = `r num_responses_all`
-
-## Survey Respondents by Role
-
 ```{r}
+#| content: valuebox
+#| title: "Funded in the last 3 years:"
+
+list(
+  color = blue,
+  value = paste0(round(pct_funded*100, 0), "%")
+)
+
+
+```
+
+## Row {height=80%}
+
+### Column {width=40%}
+
+
+```{r map}
+#| title: Regional Distribution
+
+# get manitoba boundary shape
+mb_boundary_map <- ne_states(country = "canada",
+                             returnclass = "sf") |> 
+  filter(name == "Manitoba") |> 
+  st_transform(crs = 4326) |> 
+  st_make_valid() |> 
+  st_union()
+
+# get mb economic regions shapefiles
+mb_econ_regions_sf <- read_sf("mb_economic-regions-shape-files") |> 
+  clean_names() |> 
+  st_transform(crs = 4326)
+
+mb_econ_regions_sf <- mb_econ_regions_sf |> 
+  mutate(economic_r = case_when(
+    economic_r == "Winnipeg" ~ "Capital Region",
+    economic_r == "Southwest" ~ "Westman",
+    economic_r == "Southeast" ~ "Eastman",
+    economic_r == "South Central" ~ "Pembina Valley",
+    economic_r == "Parkland" ~ "Parklands",
+    economic_r == "North Central" ~ "Central Plains",
+    economic_r == "North" ~ "Norman",
+    economic_r == "Interlake" ~ "Interlake"
+  ))
+
+# import regions from survey
+
+regions <- read_csv("data/mb-region-fsa-table.csv") |> 
+  select(-dup)
+
+
+
+mac_fsa_data <- data |>
+  select(id, postal_code) |> 
+  mutate(postal_code = str_replace_all(postal_code, " ", ""),
+         postal_code = str_to_upper(postal_code),
+         fsa = str_sub(postal_code, start = 1, end = 3)) |> 
+    filter(!is.na(fsa),
+           str_starts(fsa, "R")) |> 
+  select(id, fsa)
+
+
+#link region to mac_fsa_df
+#randomly assign regions with multiple occurences of FSA
+
+mac_fsa_data_linked <- mac_fsa_data |>
+  mutate(.row_id = row_number()) |> 
+  left_join(regions, by = "fsa", relationship = "many-to-many") |> 
+  group_by(.row_id) |> 
+  slice_sample(n = 1)
+
+mac_fsa_data_grouped <- mac_fsa_data_linked |> 
+  group_by(region) |> 
+  count()
+  
+# link counts to shapefile
+
+mb_econ_regions_sf <-mb_econ_regions_sf |> 
+  left_join(mac_fsa_data_grouped,
+            by = c("economic_r" = "region"))
+
+
+
+ggplot() +
+  geom_sf(data = mb_boundary_map,
+          fill = "grey98",
+          colour = "grey80",
+          linewidth = 0.4) +
+  geom_sf(data = mb_econ_regions_sf,
+          (aes(fill = n)),
+                          colour = "white") +
+  scale_fill_gradient(trans = "reverse",
+                      na.value = "grey90",
+                      high = green) +
+  theme_void()
+
+
+```
+
+### Column {width=60%}
+
+
+```{r org_role}
+#| title: Survey Respondents by Role
+
 
 data |> 
   mutate(org_role = str_remove(org_role, " \\(.*\\)"),
@@ -99,19 +230,21 @@ ggplot(aes(x = org_role,
         group = 1),
         stat = "count",
     hjust = -0.25,
-    size = 3
+    size = 3.5
   ) +
   coord_flip() +
   scale_y_continuous(labels = percent_format()) +
   labs(y = "",
        x = "",
-       title = "Bar lengths are proportional. The data label indicates frequency.") +
+       caption = "Bar lengths are proportional. The data label indicates frequency.") +
   plot_theme() +
   theme(
     panel.grid.minor = element_blank(),
     panel.grid.major.y = element_blank(),
     panel.grid.major.x = element_line(linewidth = 0.5),
-    plot.title.position = "plot"
+    plot.caption.position = "plot",
+    plot.caption = element_text(size = 10,
+                                hjust = 0)
   )
 
 
@@ -119,41 +252,12 @@ ggplot(aes(x = org_role,
 
 ```
 
-## Survey Respondents by Funding Status
+
+
 
 ```{r}
+#| title: Primary Areas of Artistic and Organizational Focus
 
-data |> 
-  mutate(funded_status = fct_infreq(funded_status),
-         funded_status = fct_relevel(funded_status, "Missing", after = Inf)) |> 
-ggplot(aes(x = funded_status,
-           y = after_stat(prop))) +
-  geom_bar(aes(group = 1),
-           fill = green) +
-  geom_text(
-    aes(label = 
-          paste0("n = ", after_stat(count)), y = after_stat(prop),
-        group = 1),
-        stat = "count",
-    vjust = -0.5,
-    size = 3
-  ) +
-  scale_y_continuous(labels = percent_format()) +
-  scale_x_discrete(labels = function(x) str_wrap(x, width = 15)) +
-  labs(
-    x = "",
-    y = "",
-  ) +
-  plot_theme() +
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major.x = element_blank()
-  )
-
-```
-
-## Primary Area of Artistic or Organizational Focus
-```{r}
 
 data |> 
   select(primary_focus) |> 
@@ -171,7 +275,7 @@ data |>
                 group = 1),
             stat = "count",
             vjust = -.5,
-            size = 3) +
+            size = 3.5) +
   scale_y_continuous(labels = percent_format()) +
   scale_x_discrete(labels = function(x) str_wrap(x, 8)) +
   labs(y = "",
@@ -183,9 +287,16 @@ data |>
   )
 ```
 
-## Confidence in MAC's Ability to Fulfill Its Purpose
+
+# Results
+
+## Row
+
+### Column {.tabset}
 
 ```{r}
+#| title: "Confidence"
+
 data |> 
   filter(confident_in_mac_ability != "Don’t know enough to answer",
          confident_in_mac_ability != "Missing") |> 
@@ -202,16 +313,58 @@ data |>
             size = 4) +
   scale_y_continuous(labels = percent_format(),
                      limits = c(0, .75)) +
-  labs(x = "",
+  labs(title = "Confidence in MAC's Ability to Fullfill Its Purpose",
+       x = "",
        y = "") +
   plot_theme() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank())
 ```
 
-## Feedback on MAC's Process and Services
+```{r}
+#| title: "By Role"
+
+data |> 
+  filter(confident_in_mac_ability != "Don’t know enough to answer",
+         confident_in_mac_ability != "Missing") |> 
+  mutate(role_grouped = case_when(
+    org_role %in% c("Individual Artist", "Indigenous Knowledge Keeper", "Student of the Arts",
+                    "Teacher") ~ "Individual",
+    org_role %in% c("Arts/Cultural Organization", "Educational Institution (e.g., school, post-secondary)", "Community-based Organization", "Collective / Group of Artists") ~ "Organization",
+    TRUE ~ NA
+  )) |> 
+  drop_na(role_grouped) |> 
+  ggplot(aes(x = confident_in_mac_ability,
+             y = after_stat(prop),
+             fill = role_grouped)) +
+  geom_bar(aes(group = role_grouped),
+           position = "dodge",
+           colour = "white") +
+  geom_text(aes(label = 
+                  paste0("n = ", after_stat(count)),
+                y = after_stat(prop),
+                group = role_grouped),
+            stat = "count",
+            position = position_dodge(width = 0.9),
+            vjust = -.5,
+            size = 4) +
+  scale_y_continuous(labels = percent_format(),
+                     limits = c(0, .75)) +
+  scale_fill_manual(values = c(blue, green)) +
+  labs(title = "Confidence in MAC's Ability to Fullfill Its Purpose",
+       x = "",
+       y = "",
+       fill = NULL) +
+  plot_theme() +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        legend.position = "bottom")
+```
+### Column
 
 ```{r}
+#| title: "Satisfaction with MAC's Services and Processes"
+
 ratings_data <- data |> 
   select(deadline_comms:complaints_process) |> 
   pivot_longer(cols = everything(),
@@ -311,9 +464,13 @@ ratings_data |>
   )
 ```
 
-## MAC's Connection to Arts & Cultural Community's Needs and Realities
+## Row
+
+### Column
 
 ```{r}
+#| title: "Connection to Arts & Cultural Community"
+
 data |> 
   select(connection_to_arts_community) |> 
   filter(connection_to_arts_community != "Missing") |> 
@@ -330,11 +487,16 @@ data |>
         panel.grid.major.x = element_blank())
 ```
 
-## Rank Distribution of Areas Needing Enhacement
 
-Each row in the grid represents an item on the the list. Each column represents a rank starting from the lowest rank (9) to the highest rank (1) on the right. The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the proportion of respondents assigning that rank.
+### Column
+
+
 
 ```{r}
+#| title: "Rank Distribution of Areas Needing Enhancement"
+
+plot_title <- "Each row in the grid represents an item on the the list. Each column represents a rank starting from the lowest rank (9) to the highest rank (1) on the right. The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the proportion of respondents assigning that rank." 
+
 ranking_data <- data |> 
   select(id, starts_with("rank")) |> 
   pivot_longer(
@@ -360,13 +522,16 @@ ranking_data |>
   geom_tile(color = "white") +
   scale_x_discrete(limits = as.character(9:1)) +
   scale_fill_gradient(low = "white", high = mustard) +
-  labs(x = "Rank (9 = low, 1 = high)",
+  labs(title = plot_title,
+       x = "Rank (9 = low, 1 = high)",
        y = "",
        fill = "%") +
   plot_theme() +
   theme(
     panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank()
+    panel.grid.minor = element_blank(),
+    plot.title = element_textbox_simple(size = 12),
+    plot.title.position = "plot"
   )
   
 ```
