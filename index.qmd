@@ -40,7 +40,7 @@ brick <- "#9f4125"
 #| label: load-data
 #| include: false
 
-#source("scripts/import-data.R")
+source("scripts/import-data.R")
 
 data <- read_rds("data/survey_data_clean.rds")
 
