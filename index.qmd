@@ -69,14 +69,37 @@ data <- data |>
                     "Teacher") ~ "Individual",
     org_role %in% c("Arts/Cultural Organization", "Educational Institution (e.g., school, post-secondary)", "Community-based Organization", "Collective / Group of Artists") ~ "Organization",
     TRUE ~ NA
+  )) |> 
+      mutate(postal_code = str_replace_all(postal_code, " ", ""),
+         postal_code = str_to_upper(postal_code),
+         fsa = str_sub(postal_code, start = 1, end = 3)) |> 
+    filter(!is.na(fsa),
+           str_starts(fsa, "R"))
+
+
+# load regions and link to data
+regions <- read_csv("data/mb-region-fsa-table.csv") |> 
+  select(-dup)
+
+
+# link region to data
+data <- data |> 
+  mutate(.row_id = row_number()) |> 
+  left_join(regions, by = "fsa", relationship = "many-to-many") |> 
+  group_by(.row_id) |> 
+  slice_sample(n = 1) |> 
+  ungroup() |> 
+  mutate(location = case_when(
+    region == "Capital Region" ~ "Winnipeg Area",
+    TRUE ~ "Outside Wpg"
   ))
 
 
-
+write_csv(data, "data/survey_data_clean.csv")
 
 ```
 
-# Profile
+# Overview
 
 ## Row {height=20%}
 
@@ -161,33 +184,12 @@ mb_econ_regions_sf <- mb_econ_regions_sf |>
     economic_r == "Interlake" ~ "Interlake"
   ))
 
-# import regions from survey
-
-regions <- read_csv("data/mb-region-fsa-table.csv") |> 
-  select(-dup)
-
-
-
+# grab fsa and link to shape file
 mac_fsa_data <- data |>
-  select(id, postal_code) |> 
-  mutate(postal_code = str_replace_all(postal_code, " ", ""),
-         postal_code = str_to_upper(postal_code),
-         fsa = str_sub(postal_code, start = 1, end = 3)) |> 
-    filter(!is.na(fsa),
-           str_starts(fsa, "R")) |> 
-  select(id, fsa)
+  select(fsa, region)
 
 
-#link region to mac_fsa_df
-#randomly assign regions with multiple occurences of FSA
-
-mac_fsa_data_linked <- mac_fsa_data |>
-  mutate(.row_id = row_number()) |> 
-  left_join(regions, by = "fsa", relationship = "many-to-many") |> 
-  group_by(.row_id) |> 
-  slice_sample(n = 1)
-
-mac_fsa_data_grouped <- mac_fsa_data_linked |> 
+mac_fsa_data_grouped <- mac_fsa_data |> 
   group_by(region) |> 
   count()
   
@@ -305,8 +307,7 @@ data |>
 #| title: "Confidence"
 
 data |> 
-  filter(confident_in_mac_ability != "Don’t know enough to answer",
-         confident_in_mac_ability != "Missing") |> 
+  filter(!confident_in_mac_ability %in% c("Don’t know enough to answer", "Missing")) |> 
   ggplot(aes(x = confident_in_mac_ability,
              y = after_stat(prop))) +
   geom_bar(aes(group = 1),
@@ -331,37 +332,30 @@ data |>
 ```{r}
 #| title: "By Role"
 
-data |> 
-  filter(confident_in_mac_ability != "Don’t know enough to answer",
-         confident_in_mac_ability != "Missing") |> 
-  drop_na(role_grouped) |> 
-  ggplot(aes(x = confident_in_mac_ability,
-             y = after_stat(prop),
-             fill = role_grouped)) +
-  geom_bar(aes(group = role_grouped),
-           position = "dodge",
-           colour = "white") +
-  geom_text(aes(label = 
-                  paste0("n = ", after_stat(count)),
-                y = after_stat(prop),
-                group = role_grouped),
-            stat = "count",
-            position = position_dodge(width = 0.9),
-            vjust = -.5,
-            size = 4) +
-  scale_y_continuous(labels = percent_format(),
-                     limits = c(0, .75)) +
-  scale_fill_manual(values = c(blue, green)) +
-  labs(title = "Confidence in MAC's Ability to Fullfill Its Purpose",
-       x = "",
-       y = "",
-       fill = NULL) +
-  plot_theme() +
-  theme(panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank(),
-        legend.position = "bottom")
+source("scripts/function-plot-confidence-grouped.R")
+
+plot_confidence_by_group(data, role_grouped)
+
+        
+        
 ```
-### Column
+
+```{r}
+#| title: "Funding"
+
+plot_confidence_by_group(data, funded_status)
+```
+
+```{r}
+#| title: "Location"
+
+
+
+plot_confidence_by_group(data, location)
+
+```
+
+### Column {.tabset}
 
 ```{r}
 #| title: "Satisfaction"
@@ -387,7 +381,7 @@ ratings_data <- data |>
     question == "feedback" ~ "Helpfulness of MAC feedback in grant process",
   question == "deadline_comms" ~ "Clarity about deadlines and MAC activity",
   question == "complaints_process" ~ "MAC's feedback/complaints process"
-  )) |> 
+  )) |>  
   mutate(
     response = factor(response, levels = c("Poor", "Fair", "Good", "Excellent")),
     pct = if_else(response %in% c("Poor", "Fair"), -pct, pct),
@@ -464,6 +458,36 @@ ratings_data |>
                                size = 10),
     legend.position = "bottom"
   )
+```
+
+```{r}
+#| label: function-positive-satisfaction-by group
+
+source("scripts/function-plot-satisfaction.R")
+
+
+```
+
+```{r}
+#| title: "By Role"
+
+plot_positive_satisfaction_by_group(data, role_grouped)
+```
+
+
+```{r}
+#| title: "Funding"
+
+plot_positive_satisfaction_by_group(data, funded_status)
+
+```
+
+
+```{r}
+#| title: "Location"
+
+plot_positive_satisfaction_by_group(data, location)
+
 ```
 
 ## Row
