@@ -62,7 +62,13 @@ data <- data |>
                                   "Did not apply, not funded",
                                   "Missing"
                                 ))
-  )
+  ) |> 
+    mutate(role_grouped = case_when(
+    org_role %in% c("Individual Artist", "Indigenous Knowledge Keeper", "Student of the Arts",
+                    "Teacher") ~ "Individual",
+    org_role %in% c("Arts/Cultural Organization", "Educational Institution (e.g., school, post-secondary)", "Community-based Organization", "Collective / Group of Artists") ~ "Organization",
+    TRUE ~ NA
+  ))
 
 
 
@@ -327,12 +333,6 @@ data |>
 data |> 
   filter(confident_in_mac_ability != "Don’t know enough to answer",
          confident_in_mac_ability != "Missing") |> 
-  mutate(role_grouped = case_when(
-    org_role %in% c("Individual Artist", "Indigenous Knowledge Keeper", "Student of the Arts",
-                    "Teacher") ~ "Individual",
-    org_role %in% c("Arts/Cultural Organization", "Educational Institution (e.g., school, post-secondary)", "Community-based Organization", "Collective / Group of Artists") ~ "Organization",
-    TRUE ~ NA
-  )) |> 
   drop_na(role_grouped) |> 
   ggplot(aes(x = confident_in_mac_ability,
              y = after_stat(prop),
@@ -363,11 +363,11 @@ data |>
 ### Column
 
 ```{r}
-#| title: "Satisfaction with MAC's Services and Processes"
+#| title: "Satisfaction"
 
 ratings_data <- data |> 
-  select(deadline_comms:complaints_process) |> 
-  pivot_longer(cols = everything(),
+  select(role_grouped, deadline_comms:complaints_process) |> 
+  pivot_longer(cols = -role_grouped,
                names_to = "question",
                values_to = "response") |> 
   filter(response != "Don't know",
@@ -450,7 +450,8 @@ ratings_data |>
     "Fair" = orange,
     "Good" = green,
     "Excellent" = blue)) +
-  labs(x = "",
+  labs(title = "Satisfaction with MAC's Services and Processes",
+       x = "",
        y = "",
        fill = "") +
   plot_theme() +
