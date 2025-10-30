@@ -21,7 +21,7 @@ library(ggtext)
 
 
 # set ggplot themes
-plot_theme <- function(){
+plot_theme <- function() {
   theme_minimal(base_size = 14)
 }
 
@@ -30,7 +30,7 @@ blue <- "#7fc5c5"
 green <- "#b7b23a"
 mustard <- "#ac8732"
 yellow <- "#f2b643"
-orange <-  "#e9913d"
+orange <- "#e9913d"
 red <- "#dd4f34"
 magenta <- "#cd2e6b"
 brick <- "#9f4125"
@@ -49,50 +49,80 @@ data <- data |>
   mutate(across(
     where(is.factor),
     ~ fct_na_value_to_level(.x, level = "Missing")
-  )) |> 
-  mutate(funded_status = case_when(
-    funded_past_3_yrs == "Yes" & applied_not_funded == "Yes" ~ "Funded",
-    funded_past_3_yrs == "Yes" & applied_not_funded == "No" ~ "Funded",
-    funded_past_3_yrs == "No" & applied_not_funded == "Yes" ~ "Applied, not funded",
-    funded_past_3_yrs == "No" & applied_not_funded == "No" ~ "Did not apply, not funded",
-    TRUE ~ "Missing")) |> 
-  mutate(funded_status = factor(funded_status,
-                                levels = c(
-                                  "Funded",
-                                  "Applied, not funded",
-                                  "Did not apply, not funded",
-                                  "Missing"
-                                ))
-  ) |> 
-    mutate(role_grouped = case_when(
-    org_role %in% c("Individual Artist", "Indigenous Knowledge Keeper", "Student of the Arts",
-                    "Teacher") ~ "Individual",
-    org_role %in% c("Arts/Cultural Organization", "Educational Institution (e.g., school, post-secondary)", "Community-based Organization", "Collective / Group of Artists") ~ "Organization",
-    TRUE ~ NA
-  )) |> 
-      mutate(postal_code = str_replace_all(postal_code, " ", ""),
-         postal_code = str_to_upper(postal_code),
-         fsa = str_sub(postal_code, start = 1, end = 3)) |> 
-    filter(!is.na(fsa),
-           str_starts(fsa, "R"))
+  )) |>
+  mutate(
+    funded_status = case_when(
+      funded_past_3_yrs == "Yes" & applied_not_funded == "Yes" ~ "Funded",
+      funded_past_3_yrs == "Yes" & applied_not_funded == "No" ~ "Funded",
+      funded_past_3_yrs == "No" &
+        applied_not_funded == "Yes" ~ "Applied, not funded",
+      funded_past_3_yrs == "No" &
+        applied_not_funded == "No" ~ "Did not apply, not funded",
+      TRUE ~ "Missing"
+    )
+  ) |>
+  mutate(
+    funded_status = factor(
+      funded_status,
+      levels = c(
+        "Funded",
+        "Applied, not funded",
+        "Did not apply, not funded",
+        "Missing"
+      )
+    )
+  ) |>
+  mutate(
+    role_grouped = case_when(
+      org_role %in%
+        c(
+          "Individual Artist",
+          "Indigenous Knowledge Keeper",
+          "Student of the Arts",
+          "Teacher"
+        ) ~ "Individual",
+      org_role %in%
+        c(
+          "Arts/Cultural Organization",
+          "Educational Institution (e.g., school, post-secondary)",
+          "Community-based Organization",
+          "Collective / Group of Artists"
+        ) ~ "Organization",
+      TRUE ~ NA
+    )
+  ) |>
+  mutate(
+    postal_code = str_replace_all(postal_code, " ", ""),
+    postal_code = str_to_upper(postal_code),
+    fsa = str_sub(postal_code, start = 1, end = 3)
+  ) |>
+  mutate(
+    fsa = case_when(
+      str_starts(fsa, "R") ~ fsa,
+      TRUE ~ NA
+    )
+  )
+
 
 
 # load regions and link to data
-regions <- read_csv("data/mb-region-fsa-table.csv") |> 
+regions <- read_csv("data/mb-region-fsa-table.csv") |>
   select(-dup)
 
 
 # link region to data
-data <- data |> 
-  mutate(.row_id = row_number()) |> 
-  left_join(regions, by = "fsa", relationship = "many-to-many") |> 
-  group_by(.row_id) |> 
-  slice_sample(n = 1) |> 
-  ungroup() |> 
-  mutate(location = case_when(
-    region == "Capital Region" ~ "Winnipeg Area",
-    TRUE ~ "Outside Wpg"
-  ))
+data <- data |>
+  mutate(.row_id = row_number()) |>
+  left_join(regions, by = "fsa", relationship = "many-to-many") |>
+  group_by(.row_id) |>
+  slice_sample(n = 1) |>
+  ungroup() |>
+  mutate(
+    location = case_when(
+      region == "Capital Region" ~ "Winnipeg Area",
+      TRUE ~ "Outside Wpg"
+    )
+  )
 
 
 write_csv(data, "data/survey_data_clean.csv")
@@ -107,11 +137,10 @@ write_csv(data, "data/survey_data_clean.csv")
 #| content: valuebox
 #| title: "Updated:"
 
-
 list(
   color = blue,
   value = format(Sys.Date(), "%b %d, %Y")
-  )
+)
 
 ```
 
@@ -120,13 +149,13 @@ list(
 #| content: valuebox
 #| title: "Respondents:"
 
-num_responses_all <- data |> 
-  count() |> 
+num_responses_all <- data |>
+  count() |>
   pull()
 
-num_funded <- data |> 
-  filter(funded_past_3_yrs == "Yes") |> 
-  count() |> 
+num_funded <- data |>
+  filter(funded_past_3_yrs == "Yes") |>
+  count() |>
   pull()
 
 pct_funded <- num_funded / num_responses_all
@@ -145,7 +174,7 @@ list(
 
 list(
   color = blue,
-  value = paste0(round(pct_funded*100, 0), "%")
+  value = paste0(round(pct_funded * 100, 0), "%")
 )
 
 
@@ -160,58 +189,55 @@ list(
 #| title: Regional Distribution
 
 # get manitoba boundary shape
-mb_boundary_map <- ne_states(country = "canada",
-                             returnclass = "sf") |> 
-  filter(name == "Manitoba") |> 
-  st_transform(crs = 4326) |> 
-  st_make_valid() |> 
+mb_boundary_map <- ne_states(country = "canada", returnclass = "sf") |>
+  filter(name == "Manitoba") |>
+  st_transform(crs = 4326) |>
+  st_make_valid() |>
   st_union()
 
 # get mb economic regions shapefiles
-mb_econ_regions_sf <- read_sf("mb_economic-regions-shape-files") |> 
-  clean_names() |> 
+mb_econ_regions_sf <- read_sf("mb_economic-regions-shape-files") |>
+  clean_names() |>
   st_transform(crs = 4326)
 
-mb_econ_regions_sf <- mb_econ_regions_sf |> 
-  mutate(economic_r = case_when(
-    economic_r == "Winnipeg" ~ "Capital Region",
-    economic_r == "Southwest" ~ "Westman",
-    economic_r == "Southeast" ~ "Eastman",
-    economic_r == "South Central" ~ "Pembina Valley",
-    economic_r == "Parkland" ~ "Parklands",
-    economic_r == "North Central" ~ "Central Plains",
-    economic_r == "North" ~ "Norman",
-    economic_r == "Interlake" ~ "Interlake"
-  ))
+mb_econ_regions_sf <- mb_econ_regions_sf |>
+  mutate(
+    economic_r = case_when(
+      economic_r == "Winnipeg" ~ "Capital Region",
+      economic_r == "Southwest" ~ "Westman",
+      economic_r == "Southeast" ~ "Eastman",
+      economic_r == "South Central" ~ "Pembina Valley",
+      economic_r == "Parkland" ~ "Parklands",
+      economic_r == "North Central" ~ "Central Plains",
+      economic_r == "North" ~ "Norman",
+      economic_r == "Interlake" ~ "Interlake"
+    )
+  )
 
 # grab fsa and link to shape file
 mac_fsa_data <- data |>
   select(fsa, region)
 
 
-mac_fsa_data_grouped <- mac_fsa_data |> 
-  group_by(region) |> 
+mac_fsa_data_grouped <- mac_fsa_data |>
+  group_by(region) |>
   count()
-  
+
 # link counts to shapefile
 
-mb_econ_regions_sf <-mb_econ_regions_sf |> 
-  left_join(mac_fsa_data_grouped,
-            by = c("economic_r" = "region"))
-
+mb_econ_regions_sf <- mb_econ_regions_sf |>
+  left_join(mac_fsa_data_grouped, by = c("economic_r" = "region"))
 
 
 ggplot() +
-  geom_sf(data = mb_boundary_map,
-          fill = "grey98",
-          colour = "grey80",
-          linewidth = 0.4) +
-  geom_sf(data = mb_econ_regions_sf,
-          (aes(fill = n)),
-                          colour = "white") +
-  scale_fill_gradient(trans = "reverse",
-                      na.value = "grey90",
-                      high = green) +
+  geom_sf(
+    data = mb_boundary_map,
+    fill = "grey98",
+    colour = "grey80",
+    linewidth = 0.4
+  ) +
+  geom_sf(data = mb_econ_regions_sf, (aes(fill = n)), colour = "white") +
+  scale_fill_gradient(trans = "reverse", na.value = "grey90", high = green) +
   theme_void()
 
 
@@ -223,40 +249,36 @@ ggplot() +
 ```{r org_role}
 #| title: Survey Respondents by Role
 
-
-data |> 
-  mutate(org_role = str_remove(org_role, " \\(.*\\)"),
-         org_role = fct_infreq(org_role),
-         org_role = fct_relevel(org_role, "Missing", after = Inf),
-         org_role = fct_rev(org_role)) |> 
-ggplot(aes(x = org_role,
-           y = after_stat(prop))) +
-  geom_bar(aes(group = 1),
-           fill = green) +
+data |>
+  mutate(
+    org_role = str_remove(org_role, " \\(.*\\)"),
+    org_role = fct_infreq(org_role),
+    org_role = fct_relevel(org_role, "Missing", after = Inf),
+    org_role = fct_rev(org_role)
+  ) |>
+  ggplot(aes(x = org_role, y = after_stat(prop))) +
+  geom_bar(aes(group = 1), fill = green) +
   geom_text(
-    aes(label = 
-          after_stat(count), y = after_stat(prop),
-        group = 1),
-        stat = "count",
+    aes(label = after_stat(count), y = after_stat(prop), group = 1),
+    stat = "count",
     hjust = -0.25,
     size = 3.5
   ) +
   coord_flip() +
   scale_y_continuous(labels = percent_format()) +
-  labs(y = "",
-       x = "",
-       caption = "Bar lengths are proportional. The data label indicates frequency.") +
+  labs(
+    y = "",
+    x = "",
+    caption = "Bar lengths are proportional. The data label indicates frequency."
+  ) +
   plot_theme() +
   theme(
     panel.grid.minor = element_blank(),
     panel.grid.major.y = element_blank(),
     panel.grid.major.x = element_line(linewidth = 0.5),
     plot.caption.position = "plot",
-    plot.caption = element_text(size = 10,
-                                hjust = 0)
+    plot.caption = element_text(size = 10, hjust = 0)
   )
-
-
 
 
 ```
@@ -267,28 +289,30 @@ ggplot(aes(x = org_role,
 ```{r}
 #| title: Primary Areas of Artistic and Organizational Focus
 
-
-data |> 
-  select(primary_focus) |> 
-  mutate(primary_focus = fct_infreq(primary_focus),
-         primary_focus = fct_relevel(primary_focus, "Missing", after = Inf)) |> 
+data |>
+  select(primary_focus) |>
+  mutate(
+    primary_focus = fct_infreq(primary_focus),
+    primary_focus = fct_relevel(primary_focus, "Missing", after = Inf)
+  ) |>
   ggplot(aes(
     x = primary_focus,
     y = after_stat(prop),
   )) +
-  geom_bar(aes(group = 1),
-           fill = green) +
-  geom_text(aes(label = 
-                  paste0("n = ", after_stat(count)),
-                y = after_stat(prop),
-                group = 1),
-            stat = "count",
-            vjust = -.5,
-            size = 3.5) +
+  geom_bar(aes(group = 1), fill = green) +
+  geom_text(
+    aes(
+      label = paste0("n = ", after_stat(count)),
+      y = after_stat(prop),
+      group = 1
+    ),
+    stat = "count",
+    vjust = -.5,
+    size = 3.5
+  ) +
   scale_y_continuous(labels = percent_format()) +
   scale_x_discrete(labels = function(x) str_wrap(x, 8)) +
-  labs(y = "",
-       x = "") +
+  labs(y = "", x = "") +
   plot_theme() +
   theme(
     panel.grid.minor = element_blank(),
@@ -306,27 +330,33 @@ data |>
 ```{r}
 #| title: "Confidence"
 
-data |> 
-  filter(!confident_in_mac_ability %in% c("Don’t know enough to answer", "Missing")) |> 
-  ggplot(aes(x = confident_in_mac_ability,
-             y = after_stat(prop))) +
-  geom_bar(aes(group = 1),
-           fill = green) +
-  geom_text(aes(label = 
-                  paste0("n = ", after_stat(count)),
-                y = after_stat(prop),
-                group = 1),
-            stat = "count",
-            vjust = -.5,
-            size = 4) +
-  scale_y_continuous(labels = percent_format(),
-                     limits = c(0, .75)) +
-  labs(title = "Confidence in MAC's Ability to Fullfill Its Purpose",
-       x = "",
-       y = "") +
+data |>
+  filter(
+    !confident_in_mac_ability %in% c("Don’t know enough to answer", "Missing")
+  ) |>
+  ggplot(aes(x = confident_in_mac_ability, y = after_stat(prop))) +
+  geom_bar(aes(group = 1), fill = green) +
+  geom_text(
+    aes(
+      label = paste0("n = ", after_stat(count)),
+      y = after_stat(prop),
+      group = 1
+    ),
+    stat = "count",
+    vjust = -.5,
+    size = 4
+  ) +
+  scale_y_continuous(labels = percent_format(), limits = c(0, .75)) +
+  labs(
+    title = "Confidence in MAC's Ability to Fullfill Its Purpose",
+    x = "",
+    y = ""
+  ) +
   plot_theme() +
-  theme(panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank())
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
 ```
 
 ```{r}
@@ -336,8 +366,7 @@ source("scripts/function-plot-confidence-grouped.R")
 
 plot_confidence_by_group(data, role_grouped)
 
-        
-        
+
 ```
 
 ```{r}
@@ -349,8 +378,6 @@ plot_confidence_by_group(data, funded_status)
 ```{r}
 #| title: "Location"
 
-
-
 plot_confidence_by_group(data, location)
 
 ```
@@ -360,51 +387,62 @@ plot_confidence_by_group(data, location)
 ```{r}
 #| title: "Satisfaction"
 
-ratings_data <- data |> 
-  select(role_grouped, deadline_comms:complaints_process) |> 
-  pivot_longer(cols = -role_grouped,
-               names_to = "question",
-               values_to = "response") |> 
-  filter(response != "Don't know",
-         response != "Missing") |> 
-  group_by(question, response) |> 
-  count() |> 
-  group_by(question) |> 
-  mutate(pct = n/sum(n)) |> 
-  ungroup() |> 
-    mutate(question = case_when(
-    question == "trasparent_granting" ~ "Transparency of decision making",
-    question == "response_results" ~ "Response time for grant results",
-    question == "response_enquiries" ~ "Responsiveness to enquiries",
-    question == "manipogo" ~ "Usability of Manipogo",
-    question == "guidelines_comms" ~ "Clarity about grant deadlines",
-    question == "feedback" ~ "Helpfulness of MAC feedback in grant process",
-  question == "deadline_comms" ~ "Clarity about deadlines and MAC activity",
-  question == "complaints_process" ~ "MAC's feedback/complaints process"
-  )) |>  
+ratings_data <- data |>
+  select(role_grouped, deadline_comms:complaints_process) |>
+  pivot_longer(
+    cols = -role_grouped,
+    names_to = "question",
+    values_to = "response"
+  ) |>
+  filter(response != "Don't know", response != "Missing") |>
+  group_by(question, response) |>
+  count() |>
+  group_by(question) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup() |>
   mutate(
-    response = factor(response, levels = c("Poor", "Fair", "Good", "Excellent")),
+    question = case_when(
+      question == "trasparent_granting" ~ "Transparency of decision making",
+      question == "response_results" ~ "Response time for grant results",
+      question == "response_enquiries" ~ "Responsiveness to enquiries",
+      question == "manipogo" ~ "Usability of Manipogo",
+      question == "guidelines_comms" ~ "Clarity about grant deadlines",
+      question == "feedback" ~ "Helpfulness of MAC feedback in grant process",
+      question == "deadline_comms" ~ "Clarity about deadlines and MAC activity",
+      question == "complaints_process" ~ "MAC's feedback/complaints process"
+    )
+  ) |>
+  mutate(
+    response = factor(
+      response,
+      levels = c("Poor", "Fair", "Good", "Excellent")
+    ),
     pct = if_else(response %in% c("Poor", "Fair"), -pct, pct),
-    pct_label = if_else(abs(pct) < 0.05, NA, paste0(abs(round(pct * 100, 0)), "%")),
-    side = if_else(response %in% c("Poor", "Fair"), "neg", "pos"))
+    pct_label = if_else(
+      abs(pct) < 0.05,
+      NA,
+      paste0(abs(round(pct * 100, 0)), "%")
+    ),
+    side = if_else(response %in% c("Poor", "Fair"), "neg", "pos")
+  )
 
 
-neg_levels <- c("Poor","Fair")
-pos_levels <- c("Good","Excellent")
+neg_levels <- c("Poor", "Fair")
+pos_levels <- c("Good", "Excellent")
 
-labels_pos <- ratings_data |> 
-  filter(side == "pos") |> 
-  arrange(question, factor(response, levels = c("Good", "Excellent"))) |> 
-  group_by(question) |> 
-  mutate(y_mid = cumsum(pct) - pct/2) |> 
+labels_pos <- ratings_data |>
+  filter(side == "pos") |>
+  arrange(question, factor(response, levels = c("Good", "Excellent"))) |>
+  group_by(question) |>
+  mutate(y_mid = cumsum(pct) - pct / 2) |>
   ungroup()
 
-labels_neg <- ratings_data |> 
-  filter(side == "neg") |> 
-  mutate(width = abs(pct)) |> 
-  arrange(question, factor(response, levels = c("Fair", "Poor"))) |> 
-  group_by(question) |> 
-  mutate(y_mid = -(cumsum(width) - width/2)) |> 
+labels_neg <- ratings_data |>
+  filter(side == "neg") |>
+  mutate(width = abs(pct)) |>
+  arrange(question, factor(response, levels = c("Fair", "Poor"))) |>
+  group_by(question) |>
+  mutate(y_mid = -(cumsum(width) - width / 2)) |>
   ungroup()
 
 labels_df <- bind_rows(
@@ -412,26 +450,24 @@ labels_df <- bind_rows(
   select(labels_neg, question, response, pct_label, y_mid)
 )
 
-ratings_data |> 
+ratings_data |>
   ggplot() +
   # left side
-  geom_col(data = filter(ratings_data, side == "neg"),
-           aes(x = question,
-               y = pct,
-               fill = response),
-           position = "stack",
-           colour = "white") +
-  geom_col(data = filter(ratings_data, side == "pos"),
-           aes(x = question,
-               y = pct,
-               fill = response),
-           position = position_stack(reverse = TRUE),
-           colour = "white") +
+  geom_col(
+    data = filter(ratings_data, side == "neg"),
+    aes(x = question, y = pct, fill = response),
+    position = "stack",
+    colour = "white"
+  ) +
+  geom_col(
+    data = filter(ratings_data, side == "pos"),
+    aes(x = question, y = pct, fill = response),
+    position = position_stack(reverse = TRUE),
+    colour = "white"
+  ) +
   geom_text(
     data = labels_df,
-    aes(x = question,
-        y = y_mid,
-        label = pct_label),
+    aes(x = question, y = y_mid, label = pct_label),
     size = 3.25,
     colour = "floralwhite",
     fontface = "bold"
@@ -440,22 +476,26 @@ ratings_data |>
   geom_hline(yintercept = 0, colour = "floralwhite", linewidth = .25) +
   scale_y_continuous(labels = percent_format()) +
   scale_x_discrete(labels = function(x) str_wrap(x, 25)) +
-  scale_fill_manual(values = c(
-    "Poor" = red,
-    "Fair" = orange,
-    "Good" = green,
-    "Excellent" = blue)) +
-  labs(title = "Satisfaction with MAC's Services and Processes",
-       x = "",
-       y = "",
-       fill = "") +
+  scale_fill_manual(
+    values = c(
+      "Poor" = red,
+      "Fair" = orange,
+      "Good" = green,
+      "Excellent" = blue
+    )
+  ) +
+  labs(
+    title = "Satisfaction with MAC's Services and Processes",
+    x = "",
+    y = "",
+    fill = ""
+  ) +
   plot_theme() +
   theme(
     panel.grid.minor = element_blank(),
     panel.grid.major = element_blank(),
     axis.text.x = element_blank(),
-    axis.text.y = element_text(hjust = 0,
-                               size = 10),
+    axis.text.y = element_text(hjust = 0, size = 10),
     legend.position = "bottom"
   )
 ```
@@ -497,20 +537,21 @@ plot_positive_satisfaction_by_group(data, location)
 ```{r}
 #| title: "Connection to Arts & Cultural Community"
 
-data |> 
-  select(connection_to_arts_community) |> 
-  filter(connection_to_arts_community != "Missing") |> 
+data |>
+  select(connection_to_arts_community) |>
+  filter(connection_to_arts_community != "Missing") |>
   ggplot() +
-  geom_bar(aes(x = connection_to_arts_community,
-               y = after_stat(prop),
-               group = 1),
-           fill = green) +
+  geom_bar(
+    aes(x = connection_to_arts_community, y = after_stat(prop), group = 1),
+    fill = green
+  ) +
   scale_y_continuous(labels = percent_format()) +
-  labs(x = "",
-       y = "") +
+  labs(x = "", y = "") +
   plot_theme() +
-  theme(panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank())
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
 ```
 
 
@@ -521,37 +562,31 @@ data |>
 ```{r}
 #| title: "Rank Distribution of Areas Needing Enhancement"
 
-plot_title <- "Each row in the grid represents an item on the the list. Each column represents a rank starting from the lowest rank (9) to the highest rank (1) on the right. The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the proportion of respondents assigning that rank." 
+plot_title <- "Each row in the grid represents an item on the the list. Each column represents a rank starting from the lowest rank (9) to the highest rank (1) on the right. The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the proportion of respondents assigning that rank."
 
-ranking_data <- data |> 
-  select(id, starts_with("rank")) |> 
+ranking_data <- data |>
+  select(id, starts_with("rank")) |>
   pivot_longer(
     cols = -id,
     names_to = "item",
     values_to = "rank"
-  ) |> 
-  filter(rank != "Missing") |> 
+  ) |>
+  filter(rank != "Missing") |>
   mutate(
     item = str_remove(item, "rank_"),
     rank = as.numeric(rank),
     n_total = n_distinct(id)
-  ) |> 
-  mutate(item = str_replace(item, "_", " "),
-         item = str_to_title(item)) |> 
+  ) |>
+  mutate(item = str_replace(item, "_", " "), item = str_to_title(item)) |>
   group_by(item, rank) |>
   summarise(pct = n() / first(n_total) * 100, .groups = "drop")
 
-ranking_data |> 
-  ggplot(aes(x = factor(rank),
-             y = item,
-             fill = pct)) +
+ranking_data |>
+  ggplot(aes(x = factor(rank), y = item, fill = pct)) +
   geom_tile(color = "white") +
   scale_x_discrete(limits = as.character(9:1)) +
   scale_fill_gradient(low = "white", high = mustard) +
-  labs(title = plot_title,
-       x = "Rank (9 = low, 1 = high)",
-       y = "",
-       fill = "%") +
+  labs(title = plot_title, x = "Rank (9 = low, 1 = high)", y = "", fill = "%") +
   plot_theme() +
   theme(
     panel.grid.major = element_blank(),
@@ -559,6 +594,6 @@ ranking_data |>
     plot.title = element_textbox_simple(size = 12),
     plot.title.position = "plot"
   )
-  
+
 ```
 
