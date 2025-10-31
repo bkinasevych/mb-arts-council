@@ -41,7 +41,7 @@ brick <- "#9f4125"
 #| label: load-data
 #| include: false
 
-source("scripts/import-data.R")
+#source("scripts/import-data.R")
 
 data <- read_rds("data/survey_data_clean.rds")
 
@@ -104,7 +104,6 @@ data <- data |>
   )
 
 
-
 # load regions and link to data
 regions <- read_csv("data/mb-region-fsa-table.csv") |>
   select(-dup)
@@ -124,6 +123,8 @@ data <- data |>
     )
   )
 
+# Create functions
+source("scripts/functions.R")
 
 write_csv(data, "data/survey_data_clean.csv")
 
@@ -228,6 +229,23 @@ mac_fsa_data_grouped <- mac_fsa_data |>
 mb_econ_regions_sf <- mb_econ_regions_sf |>
   left_join(mac_fsa_data_grouped, by = c("economic_r" = "region"))
 
+# create categories for n
+
+mb_econ_regions_sf <- mb_econ_regions_sf |>
+  mutate(
+    n_categories = case_when(
+      is.na(n) ~ "No data",
+      n <= 50 ~ "0 - 50",
+      n <= 100 ~ "51 - 100",
+      n <= 150 ~ "101 - 150",
+      n > 150 ~ "Over 150"
+    ),
+    n_categories = factor(
+      n_categories,
+      levels = c("0 - 50", "51 - 100", "101 - 150", "Over 150", "No data")
+    )
+  )
+
 
 ggplot() +
   geom_sf(
@@ -236,8 +254,21 @@ ggplot() +
     colour = "grey80",
     linewidth = 0.4
   ) +
-  geom_sf(data = mb_econ_regions_sf, (aes(fill = n)), colour = "white") +
-  scale_fill_gradient(trans = "reverse", na.value = "grey90", high = green) +
+  geom_sf(
+    data = mb_econ_regions_sf,
+    (aes(fill = n_categories)),
+    colour = "white"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "0 - 50" = yellow,
+      "51 - 100" = orange,
+      "101 = 150" = red,
+      "Over 150" = brick,
+      "No data" = "grey90"
+    )
+  ) +
+  labs(fill = NULL) +
   theme_void()
 
 
@@ -361,8 +392,6 @@ data |>
 
 ```{r}
 #| title: "By Role"
-
-source("scripts/function-plot-confidence-grouped.R")
 
 plot_confidence_by_group(data, role_grouped)
 
@@ -501,14 +530,6 @@ ratings_data |>
 ```
 
 ```{r}
-#| label: function-positive-satisfaction-by group
-
-source("scripts/function-plot-satisfaction.R")
-
-
-```
-
-```{r}
 #| title: "By Role"
 
 plot_positive_satisfaction_by_group(data, role_grouped)
@@ -532,10 +553,10 @@ plot_positive_satisfaction_by_group(data, location)
 
 ## Row
 
-### Column
+### Column {.tabset}
 
 ```{r}
-#| title: "Connection to Arts & Cultural Community"
+#| title: "Connection"
 
 data |>
   select(connection_to_arts_community) |>
@@ -545,8 +566,18 @@ data |>
     aes(x = connection_to_arts_community, y = after_stat(prop), group = 1),
     fill = green
   ) +
+  geom_text(
+    aes(x = connection_to_arts_community,
+      label = paste0("n = ", after_stat(count)),
+      y = after_stat(prop),
+      group = 1
+    ),
+    stat = "count",
+    vjust = -.5,
+    size = 4
+  ) +
   scale_y_continuous(labels = percent_format()) +
-  labs(x = "", y = "") +
+  labs(x = "", y = "", title = "Connection to Arts & Cultural Community") +
   plot_theme() +
   theme(
     panel.grid.minor = element_blank(),
@@ -554,6 +585,26 @@ data |>
   )
 ```
 
+```{r}
+#| title: "By Role"
+
+plot_connection_by_group(data, role_grouped)
+```
+
+```{r}
+#| title: "Funding"
+
+plot_connection_by_group(data, funded_status)
+
+```
+
+```{r}
+#| title: "Location"
+
+plot_connection_by_group(data, location)
+
+
+```
 
 ### Column
 
