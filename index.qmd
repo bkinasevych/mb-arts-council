@@ -674,7 +674,8 @@ ranking_data |>
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title = element_textbox_simple(size = 12),
+    plot.title = element_textbox_simple(size = 12,
+    margin = margin(b = 5)),
     plot.title.position = "plot",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
@@ -716,7 +717,7 @@ ranking_data |>
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title = element_textbox_simple(size = 12),
+    plot.title = element_textbox_simple(size = 12, margin = margin(b = 5)),
     plot.title.position = "plot",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
@@ -730,7 +731,7 @@ ranking_data |>
 plot_title <- "Ranked options are listed across the bottom of the grid. Each column shows ranks from high (1) to low (9). The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the number of people assigning that rank."
 
 ranking_data <- data |>
-  filter(role_grouped == "Individual") |> 
+  filter(role_grouped == "Organization") |> 
   select(id, starts_with("rank")) |>
   pivot_longer(
     cols = -id,
@@ -758,7 +759,8 @@ ranking_data |>
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title = element_textbox_simple(size = 12),
+    plot.title = element_textbox_simple(size = 12,
+    margin = margin(b = 5)),
     plot.title.position = "plot",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
@@ -1088,7 +1090,8 @@ ranking_data |>
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title = element_textbox_simple(size = 12),
+    plot.title = element_textbox_simple(size = 12,
+    margin = margin(b = 5)),
     plot.title.position = "plot",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
@@ -1133,7 +1136,8 @@ ranking_data |>
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title = element_textbox_simple(size = 12),
+    plot.title = element_textbox_simple(size = 12,
+    margin = margin(b = 5)),
     plot.title.position = "plot",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
@@ -1178,7 +1182,8 @@ ranking_data |>
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title = element_textbox_simple(size = 12),
+    plot.title = element_textbox_simple(size = 12,
+    margin = margin(b = 5)),
     plot.title.position = "plot",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
