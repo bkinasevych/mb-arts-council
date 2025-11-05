@@ -1,7 +1,8 @@
 plot_confidence_by_group <- function(
   data,
   group_var,
-  title = "Confidence in MAC's Ability to Fulfill Its Purpose"
+  title = "Confidence in MAC's Ability to Fulfill Its Purpose",
+  subtitle = NULL
 ) {
   # Filter out missing values and unwanted responses
   plot_data <- data |>
@@ -56,7 +57,7 @@ plot_confidence_by_group <- function(
     ) +
     scale_y_continuous(labels = percent_format(), limits = c(0, 0.75)) +
     scale_fill_manual(values = colors) +
-    labs(title = title, x = "", y = "", fill = NULL) +
+    labs(title = title, subtitle = subtitle, x = "", y = "", fill = NULL) +
     plot_theme() +
     theme(
       panel.grid.minor = element_blank(),
@@ -69,7 +70,8 @@ plot_confidence_by_group <- function(
 plot_positive_satisfaction_by_group <- function(
   data,
   group_var,
-  title = "Positive Satisfaction by Group"
+  title = "Positive Satisfaction by Group",
+  caption = NULL
 ) {
   satisfaction_cols <- c(
     "deadline_comms",
@@ -131,9 +133,11 @@ plot_positive_satisfaction_by_group <- function(
     coord_flip() +
     scale_fill_manual(values = colors) +
     scale_y_continuous(labels = percent_format(), limits = c(0, 1)) +
+    guides(fill = guide_legend(reverse = TRUE)) +
     labs(
       title = title,
       subtitle = "% responding Good or Excellent",
+      caption = caption,
       x = "",
       y = "",
       fill = ""
@@ -150,7 +154,8 @@ plot_positive_satisfaction_by_group <- function(
 plot_connection_by_group <- function(
   data,
   group_var,
-  title = "Connection to Arts & Cultural Community"
+  title = "Connection to Arts & Cultural Community",
+  subtitle = NULL
 ) {
   # Filter out missing values and unwanted responses
   plot_data <- data |>
@@ -205,7 +210,7 @@ plot_connection_by_group <- function(
     ) +
     scale_y_continuous(labels = percent_format(), limits = c(0, 0.75)) +
     scale_fill_manual(values = colors) +
-    labs(title = title, x = "", y = "", fill = NULL) +
+    labs(title = title, subtitle = subtitle, x = "", y = "", fill = NULL) +
     plot_theme() +
     theme(
       panel.grid.minor = element_blank(),

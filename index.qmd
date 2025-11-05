@@ -123,6 +123,9 @@ data <- data |>
     )
   )
 
+data_applied <- data |> 
+  filter(funded_status != "Did not apply, not funded")
+
 # Create functions
 source("scripts/functions.R")
 
@@ -130,11 +133,14 @@ write_csv(data, "data/survey_data_clean.csv")
 
 ```
 
+
+
 # Overview
 
 ## Row {height=20%}
 
 ```{r}
+#| label: updated
 #| content: valuebox
 #| title: "Updated:"
 
@@ -149,6 +155,7 @@ list(
 ```{r}
 #| content: valuebox
 #| title: "Respondents:"
+#| label: num_respondents
 
 num_responses_all <- data |>
   count() |>
@@ -172,6 +179,7 @@ list(
 ```{r}
 #| content: valuebox
 #| title: "Funded in the last 3 years:"
+#| label: funded
 
 list(
   color = blue,
@@ -188,6 +196,7 @@ list(
 
 ```{r map}
 #| title: Regional Distribution
+#| label: map
 
 # get manitoba boundary shape
 mb_boundary_map <- ne_states(country = "canada", returnclass = "sf") |>
@@ -279,6 +288,7 @@ ggplot() +
 
 ```{r org_role}
 #| title: Survey Respondents by Role
+#| label: respondents_by_role
 
 data |>
   mutate(
@@ -296,7 +306,8 @@ data |>
     size = 3.5
   ) +
   coord_flip() +
-  scale_y_continuous(labels = percent_format()) +
+  scale_y_continuous(labels = percent_format(),
+  expand = c(0, 0.1)) +
   labs(
     y = "",
     x = "",
@@ -319,6 +330,7 @@ data |>
 
 ```{r}
 #| title: Primary Areas of Artistic and Organizational Focus
+#| label: area_of_art_focus
 
 data |>
   select(primary_focus) |>
@@ -352,7 +364,7 @@ data |>
 ```
 
 
-# Results
+# All Results
 
 ## Row
 
@@ -360,6 +372,7 @@ data |>
 
 ```{r}
 #| title: "Confidence"
+#| label: confidence_all
 
 data |>
   filter(
@@ -390,31 +403,41 @@ data |>
   )
 ```
 
+
+
 ```{r}
 #| title: "By Role"
+#| label: confidence_by_role
 
 plot_confidence_by_group(data, role_grouped)
 
 
 ```
 
+
 ```{r}
 #| title: "Funding"
+#| label: confidence_by_funding
 
 plot_confidence_by_group(data, funded_status)
 ```
 
+
 ```{r}
 #| title: "Location"
+#| label: confidence_by_location
 
 plot_confidence_by_group(data, location)
 
 ```
 
+
+
 ### Column {.tabset}
 
 ```{r}
 #| title: "Satisfaction"
+#| label: satisfaction_all
 
 ratings_data <- data |>
   select(role_grouped, deadline_comms:complaints_process) |>
@@ -531,6 +554,7 @@ ratings_data |>
 
 ```{r}
 #| title: "By Role"
+#| label: satisfaction_by_role
 
 plot_positive_satisfaction_by_group(data, role_grouped)
 ```
@@ -538,6 +562,7 @@ plot_positive_satisfaction_by_group(data, role_grouped)
 
 ```{r}
 #| title: "Funding"
+#| label: satisfaction_by_funding
 
 plot_positive_satisfaction_by_group(data, funded_status)
 
@@ -546,6 +571,7 @@ plot_positive_satisfaction_by_group(data, funded_status)
 
 ```{r}
 #| title: "Location"
+#| label: satisfaction_by_location
 
 plot_positive_satisfaction_by_group(data, location)
 
@@ -557,6 +583,7 @@ plot_positive_satisfaction_by_group(data, location)
 
 ```{r}
 #| title: "Connection"
+#| label: connection_all
 
 data |>
   select(connection_to_arts_community) |>
@@ -587,12 +614,14 @@ data |>
 
 ```{r}
 #| title: "By Role"
+#| label: connection_by_role
 
 plot_connection_by_group(data, role_grouped)
 ```
 
 ```{r}
 #| title: "Funding"
+#| label: connection_by_funding
 
 plot_connection_by_group(data, funded_status)
 
@@ -600,20 +629,22 @@ plot_connection_by_group(data, funded_status)
 
 ```{r}
 #| title: "Location"
+#| label: connection_by_location
 
 plot_connection_by_group(data, location)
 
 
 ```
 
-### Column
+### Column {.tabset}
 
 
 
 ```{r}
-#| title: "Rank Distribution of Areas Needing Enhancement"
+#| title: "Ranked Needs"
+#| label: ranking_all
 
-plot_title <- "Each row in the grid represents an item on the the list. Each column represents a rank starting from the lowest rank (9) to the highest rank (1) on the right. The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the proportion of respondents assigning that rank."
+plot_title <- "Ranked options are listed across the bottom of the grid. Each column shows ranks from high (1) to low (9). The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the number of people assigning that rank."
 
 ranking_data <- data |>
   select(id, starts_with("rank")) |>
@@ -633,18 +664,523 @@ ranking_data <- data |>
   summarise(pct = n() / first(n_total) * 100, .groups = "drop")
 
 ranking_data |>
-  ggplot(aes(x = factor(rank), y = item, fill = pct)) +
+  ggplot(aes(y = factor(rank), x = item, fill = pct)) +
   geom_tile(color = "white") +
-  scale_x_discrete(limits = as.character(9:1)) +
+  scale_y_discrete(limits = as.character(9:1)) +
+  scale_x_discrete() +
   scale_fill_gradient(low = "white", high = mustard) +
-  labs(title = plot_title, x = "Rank (9 = low, 1 = high)", y = "", fill = "%") +
+  labs(title = plot_title, y = "Rank (1 = High, 9 = Low)", x = "", fill = "%") +
   plot_theme() +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     plot.title = element_textbox_simple(size = 12),
-    plot.title.position = "plot"
+    plot.title.position = "plot",
+    axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
 ```
 
+```{r}
+#| title: "Individuals"
+#| label: ranking_individuals
+
+plot_title <- "Ranked options are listed across the bottom of the grid. Each column shows ranks from high (1) to low (9). The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the number of people assigning that rank."
+
+ranking_data <- data |>
+  filter(role_grouped == "Individual") |> 
+  select(id, starts_with("rank")) |>
+  pivot_longer(
+    cols = -id,
+    names_to = "item",
+    values_to = "rank"
+  ) |>
+  filter(rank != "Missing") |>
+  mutate(
+    item = str_remove(item, "rank_"),
+    rank = as.numeric(rank),
+    n_total = n_distinct(id)
+  ) |>
+  mutate(item = str_replace(item, "_", " "), item = str_to_title(item)) |>
+  group_by(item, rank) |>
+  summarise(pct = n() / first(n_total) * 100, .groups = "drop")
+
+ranking_data |>
+  ggplot(aes(y = factor(rank), x = item, fill = pct)) +
+  geom_tile(color = "white") +
+  scale_y_discrete(limits = as.character(9:1)) +
+  scale_x_discrete() +
+  scale_fill_gradient(low = "white", high = mustard) +
+  labs(title = plot_title, y = "Rank (1 = High, 9 = Low)", x = "", fill = "%") +
+  plot_theme() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_textbox_simple(size = 12),
+    plot.title.position = "plot",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+```{r}
+#| title: "Organizations"
+#| label: ranking_organization
+
+plot_title <- "Ranked options are listed across the bottom of the grid. Each column shows ranks from high (1) to low (9). The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the number of people assigning that rank."
+
+ranking_data <- data |>
+  filter(role_grouped == "Individual") |> 
+  select(id, starts_with("rank")) |>
+  pivot_longer(
+    cols = -id,
+    names_to = "item",
+    values_to = "rank"
+  ) |>
+  filter(rank != "Missing") |>
+  mutate(
+    item = str_remove(item, "rank_"),
+    rank = as.numeric(rank),
+    n_total = n_distinct(id)
+  ) |>
+  mutate(item = str_replace(item, "_", " "), item = str_to_title(item)) |>
+  group_by(item, rank) |>
+  summarise(pct = n() / first(n_total) * 100, .groups = "drop")
+
+ranking_data |>
+  ggplot(aes(y = factor(rank), x = item, fill = pct)) +
+  geom_tile(color = "white") +
+  scale_y_discrete(limits = as.character(9:1)) +
+  scale_x_discrete() +
+  scale_fill_gradient(low = "white", high = mustard) +
+  labs(title = plot_title, y = "Rank (1 = High, 9 = Low)", x = "", fill = "%") +
+  plot_theme() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_textbox_simple(size = 12),
+    plot.title.position = "plot",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+
+# Applicants Only
+
+## Row
+
+### Column {.tabset}
+
+```{r}
+#| label: confidence_applicants
+#| title: "Confidence"
+
+data |>
+  filter(
+    !confident_in_mac_ability %in% c("Don’t know enough to answer", "Missing"),
+    funded_status != "Did not apply, not funded"
+  ) |>
+  ggplot(aes(x = confident_in_mac_ability, y = after_stat(prop))) +
+  geom_bar(aes(group = 1), fill = green) +
+  geom_text(
+    aes(
+      label = paste0("n = ", after_stat(count)),
+      y = after_stat(prop),
+      group = 1
+    ),
+    stat = "count",
+    vjust = -.5,
+    size = 4
+  ) +
+  scale_y_continuous(labels = percent_format(), limits = c(0, .75)) +
+  labs(
+    title = "Confidence in MAC's Ability to Fullfill Its Purpose",
+    subtitle = "Includes only those that have applied in the last 3 years",
+    x = "",
+    y = ""
+  ) +
+  plot_theme() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+
+```{r}
+#| title: "By Role"
+#| label: confidence_by_role_applied
+
+plot_confidence_by_group(data_applied, role_grouped, subtitle = "Includes only those that have applied in the last 3 years")
+
+
+
+```
+
+
+```{r}
+#| title: "Funding"
+#| label: confidence_by_funding_applied
+
+
+
+plot_confidence_by_group(data_applied, funded_status, subtitle = "Includes only those that have applied in the last 3 years")
+```
+
+
+```{r}
+#| title: "Location"
+#| label: confidence_by_location_applied
+
+plot_confidence_by_group(data_applied, location, subtitle = "Includes only those that have applied in the last 3 years")
+```
+
+### Column {.tabset}
+
+```{r}
+#| title: "Satisfaction"
+#| label: satisfaction_applicants
+
+ratings_data <- data |>
+  filter(funded_status != "Did not apply, not funded") |> 
+  select(role_grouped, deadline_comms:complaints_process) |>
+  pivot_longer(
+    cols = -role_grouped,
+    names_to = "question",
+    values_to = "response"
+  ) |>
+  filter(response != "Don't know", response != "Missing") |>
+  group_by(question, response) |>
+  count() |>
+  group_by(question) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup() |>
+  mutate(
+    question = case_when(
+      question == "trasparent_granting" ~ "Transparency of decision making",
+      question == "response_results" ~ "Response time for grant results",
+      question == "response_enquiries" ~ "Responsiveness to enquiries",
+      question == "manipogo" ~ "Usability of Manipogo",
+      question == "guidelines_comms" ~ "Clarity about grant deadlines",
+      question == "feedback" ~ "Helpfulness of MAC feedback in grant process",
+      question == "deadline_comms" ~ "Clarity about deadlines and MAC activity",
+      question == "complaints_process" ~ "MAC's feedback/complaints process"
+    )
+  ) |>
+  mutate(
+    response = factor(
+      response,
+      levels = c("Poor", "Fair", "Good", "Excellent")
+    ),
+    pct = if_else(response %in% c("Poor", "Fair"), -pct, pct),
+    pct_label = if_else(
+      abs(pct) < 0.05,
+      NA,
+      paste0(abs(round(pct * 100, 0)), "%")
+    ),
+    side = if_else(response %in% c("Poor", "Fair"), "neg", "pos")
+  )
+
+
+neg_levels <- c("Poor", "Fair")
+pos_levels <- c("Good", "Excellent")
+
+labels_pos <- ratings_data |>
+  filter(side == "pos") |>
+  arrange(question, factor(response, levels = c("Good", "Excellent"))) |>
+  group_by(question) |>
+  mutate(y_mid = cumsum(pct) - pct / 2) |>
+  ungroup()
+
+labels_neg <- ratings_data |>
+  filter(side == "neg") |>
+  mutate(width = abs(pct)) |>
+  arrange(question, factor(response, levels = c("Fair", "Poor"))) |>
+  group_by(question) |>
+  mutate(y_mid = -(cumsum(width) - width / 2)) |>
+  ungroup()
+
+labels_df <- bind_rows(
+  select(labels_pos, question, response, pct_label, y_mid),
+  select(labels_neg, question, response, pct_label, y_mid)
+)
+
+ratings_data |>
+  ggplot() +
+  # left side
+  geom_col(
+    data = filter(ratings_data, side == "neg"),
+    aes(x = question, y = pct, fill = response),
+    position = "stack",
+    colour = "white"
+  ) +
+  geom_col(
+    data = filter(ratings_data, side == "pos"),
+    aes(x = question, y = pct, fill = response),
+    position = position_stack(reverse = TRUE),
+    colour = "white"
+  ) +
+  geom_text(
+    data = labels_df,
+    aes(x = question, y = y_mid, label = pct_label),
+    size = 3.25,
+    colour = "floralwhite",
+    fontface = "bold"
+  ) +
+  coord_flip() +
+  geom_hline(yintercept = 0, colour = "floralwhite", linewidth = .25) +
+  scale_y_continuous(labels = percent_format()) +
+  scale_x_discrete(labels = function(x) str_wrap(x, 25)) +
+  scale_fill_manual(
+    values = c(
+      "Poor" = red,
+      "Fair" = orange,
+      "Good" = green,
+      "Excellent" = blue
+    )
+  ) +
+  labs(
+    title = "Satisfaction with MAC's Services and Processes",
+    subtitle = "Includes only those that have applied in the last 3 years",
+    x = "",
+    y = "",
+    fill = ""
+  ) +
+  plot_theme() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_text(hjust = 0, size = 10),
+    legend.position = "bottom"
+  )
+```
+
+```{r}
+#| title: "By Role"
+#| label: satisfaction_by_role_applied
+
+plot_positive_satisfaction_by_group(data_applied, role_grouped, caption = "Includes only those that have applied in the last 3 years")
+```
+
+
+```{r}
+#| title: "Funding"
+#| label: "Satisfaction_by_funding_applied"
+
+plot_positive_satisfaction_by_group(data_applied, funded_status,
+caption = "Includes only those that have applied in the past 3 years")
+
+```
+
+
+```{r}
+#| title: "Location"
+#| label: satisfaction_by_location_applied
+
+plot_positive_satisfaction_by_group(data_applied, location,
+caption = "Includes only those that have applied in the past 3 years")
+
+```
+
+## Row
+
+### Column {.tabset}
+
+```{r}
+#| title: "Connection"
+#| label: connection_applied
+
+data |>
+  filter(funded_status != "Did not apply, not funded") |> 
+  select(connection_to_arts_community) |>
+  filter(connection_to_arts_community != "Missing") |>
+  ggplot() +
+  geom_bar(
+    aes(x = connection_to_arts_community, y = after_stat(prop), group = 1),
+    fill = green
+  ) +
+  geom_text(
+    aes(x = connection_to_arts_community,
+      label = paste0("n = ", after_stat(count)),
+      y = after_stat(prop),
+      group = 1
+    ),
+    stat = "count",
+    vjust = -.5,
+    size = 4
+  ) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = "", y = "", title = "Connection to Arts & Cultural Community", subtitle = "Includes only those that have applied in the last 3 years") +
+  plot_theme() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+```{r}
+#| title: "By Role"
+#| label: connection_by_role_applied
+
+plot_connection_by_group(data_applied, role_grouped,
+subtitle = "Includes only those that have appled in the last 3 years")
+```
+
+```{r}
+#| title: "Funding"
+#| label: connection_by_funding_applied
+
+plot_connection_by_group(data_applied, funded_status,
+subtitle = "Includes only those that have applied in the last 3 years")
+
+```
+
+```{r}
+#| title: "Location"
+#| label: connection_by_location_applied
+
+plot_connection_by_group(data_applied, location,
+subtitle = "Includes only those that have applied in the last 3 years")
+
+
+```
+
+### Column {.tabset}
+
+
+
+```{r}
+#| title: "Ranked Needs"
+#| label: ranking_all_applied
+
+plot_title <- "Ranked options are listed across the bottom of the grid. Each column shows ranks from high (1) to low (9). The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the number of people assigning that rank."
+
+ranking_data <- data |>
+  filter(funded_status != "Did not apply, not funded") |> 
+  select(id, starts_with("rank")) |>
+  pivot_longer(
+    cols = -id,
+    names_to = "item",
+    values_to = "rank"
+  ) |>
+  filter(rank != "Missing") |>
+  mutate(
+    item = str_remove(item, "rank_"),
+    rank = as.numeric(rank),
+    n_total = n_distinct(id)
+  ) |>
+  mutate(item = str_replace(item, "_", " "), item = str_to_title(item)) |>
+  group_by(item, rank) |>
+  summarise(pct = n() / first(n_total) * 100, .groups = "drop")
+
+ranking_data |>
+  ggplot(aes(y = factor(rank), x = item, fill = pct)) +
+  geom_tile(color = "white") +
+  scale_y_discrete(limits = as.character(9:1)) +
+  scale_x_discrete() +
+  scale_fill_gradient(low = "white", high = mustard) +
+  labs(title = plot_title, 
+  caption = "Includes only those that have applied in the last 3 years",
+  y = "Rank (1 = High, 9 = Low)", x = "", fill = "%") +
+  plot_theme() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_textbox_simple(size = 12),
+    plot.title.position = "plot",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+```{r}
+#| title: "Individuals"
+#| label: ranking_individuals_applied
+
+plot_title <- "Ranked options are listed across the bottom of the grid. Each column shows ranks from high (1) to low (9). The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the number of people assigning that rank."
+
+ranking_data <- data |>
+  filter(role_grouped == "Individual",
+  funded_status != "Did not apply, not funded") |> 
+  select(id, starts_with("rank")) |>
+  pivot_longer(
+    cols = -id,
+    names_to = "item",
+    values_to = "rank"
+  ) |>
+  filter(rank != "Missing") |>
+  mutate(
+    item = str_remove(item, "rank_"),
+    rank = as.numeric(rank),
+    n_total = n_distinct(id)
+  ) |>
+  mutate(item = str_replace(item, "_", " "), item = str_to_title(item)) |>
+  group_by(item, rank) |>
+  summarise(pct = n() / first(n_total) * 100, .groups = "drop")
+
+ranking_data |>
+  ggplot(aes(y = factor(rank), x = item, fill = pct)) +
+  geom_tile(color = "white") +
+  scale_y_discrete(limits = as.character(9:1)) +
+  scale_x_discrete() +
+  scale_fill_gradient(low = "white", high = mustard) +
+  labs(title = plot_title, 
+  caption = "Includes only individual artists that have applied in the last 3 years",
+  y = "Rank (1 = High, 9 = Low)", x = "", fill = "%") +
+  plot_theme() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_textbox_simple(size = 12),
+    plot.title.position = "plot",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+```{r}
+#| title: "Organizations"
+#| label: ranking_organization_applied
+
+plot_title <- "Ranked options are listed across the bottom of the grid. Each column shows ranks from high (1) to low (9). The colour of the square represents the proportion of people assigning the corresponding rank to each item. The darker the colour, the higher the number of people assigning that rank."
+
+ranking_data <- data |>
+  filter(funded_status != "Did not apply, not funded",
+  role_grouped == "Organization") |> 
+  select(id, starts_with("rank")) |>
+  pivot_longer(
+    cols = -id,
+    names_to = "item",
+    values_to = "rank"
+  ) |>
+  filter(rank != "Missing") |>
+  mutate(
+    item = str_remove(item, "rank_"),
+    rank = as.numeric(rank),
+    n_total = n_distinct(id)
+  ) |>
+  mutate(item = str_replace(item, "_", " "), item = str_to_title(item)) |>
+  group_by(item, rank) |>
+  summarise(pct = n() / first(n_total) * 100, .groups = "drop")
+
+ranking_data |>
+  ggplot(aes(y = factor(rank), x = item, fill = pct)) +
+  geom_tile(color = "white") +
+  scale_y_discrete(limits = as.character(9:1)) +
+  scale_x_discrete() +
+  scale_fill_gradient(low = "white", high = mustard) +
+  labs(title = plot_title, 
+  caption = "Includes only organizations that have applied for funding in the last 3 years",
+  y = "Rank (1 = High, 9 = Low)", x = "", fill = "%") +
+  plot_theme() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_textbox_simple(size = 12),
+    plot.title.position = "plot",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
