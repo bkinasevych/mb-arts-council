@@ -244,14 +244,14 @@ mb_econ_regions_sf <- mb_econ_regions_sf |>
   mutate(
     n_categories = case_when(
       is.na(n) ~ "No data",
-      n <= 50 ~ "0 - 50",
+      n <= 50 ~ "1 - 50",
       n <= 100 ~ "51 - 100",
       n <= 150 ~ "101 - 150",
       n > 150 ~ "Over 150"
     ),
     n_categories = factor(
       n_categories,
-      levels = c("0 - 50", "51 - 100", "101 - 150", "Over 150", "No data")
+      levels = c("1 - 50", "51 - 100", "101 - 150", "Over 150", "No data")
     )
   )
 
@@ -270,7 +270,7 @@ ggplot() +
   ) +
   scale_fill_manual(
     values = c(
-      "0 - 50" = yellow,
+      "1 - 50" = yellow,
       "51 - 100" = orange,
       "101 = 150" = red,
       "Over 150" = brick,
@@ -281,6 +281,17 @@ ggplot() +
   theme_void()
 
 
+```
+
+```{r}
+
+t <- mb_econ_regions_sf |> 
+  st_drop_geometry() |> 
+  select(economic_r, n)
+
+ggplot(data = t,
+mapping = aes(x = economic_r,
+y = n))
 ```
 
 ### Column {width=60%}
