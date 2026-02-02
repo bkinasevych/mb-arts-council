@@ -284,14 +284,29 @@ ggplot() +
 ```
 
 ```{r}
+#| label: regions_bar
 
 t <- mb_econ_regions_sf |> 
   st_drop_geometry() |> 
-  select(economic_r, n)
+  select(economic_r, n) |> 
+  mutate(economic_r = fct_reorder(economic_r, n))
 
 ggplot(data = t,
 mapping = aes(x = economic_r,
-y = n))
+y = n)) +
+  geom_col(fill = green) +
+  geom_text(aes(label = n),
+  hjust = -.5) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(y = "",
+  x = "") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
 ```
 
 ### Column {width=60%}
