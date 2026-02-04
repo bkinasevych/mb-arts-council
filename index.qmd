@@ -22,7 +22,7 @@ library(ggtext)
 
 # set ggplot themes
 plot_theme <- function() {
-  theme_minimal(base_size = 14)
+  theme_minimal(base_size = 16)
 }
 
 # set colours
@@ -193,6 +193,8 @@ list(
 
 ### Column {width=40%}
 
+#### Row {height=60%}
+
 
 ```{r map}
 #| title: Regional Distribution
@@ -283,6 +285,7 @@ ggplot() +
 
 ```
 
+#### Row {height=40%}
 ```{r}
 #| label: regions_bar
 
@@ -304,6 +307,7 @@ y = n)) +
   theme_minimal() +
   theme(
     axis.text.x = element_blank(),
+    axis.text.y = element_text(size = 11),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank())
 
